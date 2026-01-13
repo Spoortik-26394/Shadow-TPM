@@ -2,12 +2,12 @@ import streamlit as st
 import json
 import plotly.express as px
 import pandas as pd
-from agents import orchestrator  # Import from your agents.py
+from agents import orchestrator
 
 st.set_page_config(
     page_title="Shadow TPM",
-    page_icon="🛡️",          # Shield emoji as app icon
-    layout="wide"            # Makes the page use full width
+    page_icon="🛡️",
+    layout="wide"
 )
 
 st.sidebar.title("Shadow TPM")
@@ -31,11 +31,10 @@ project_input = st.text_area(
     placeholder="Example: Scaling a new 1GW TPU cluster in Texas, 9-month deadline, $500M budget, key vendors for power infrastructure and fiber cables."
 )
 
-# NEW: Multimodal file upload (stretch goal)
 uploaded_file = st.file_uploader(
-    "Upload PDF roadmap, whiteboard image, or diagram (optional)",
-    type=['pdf', 'png', 'jpg', 'jpeg'],
-    help="Gemini can analyze this file to provide more accurate risks and trade-offs."
+    "Upload roadmap or document (PDF, Word .docx, text .txt, or image)",
+    type=['pdf', 'docx', 'txt', 'png', 'jpg', 'jpeg'],
+    help="Gemini can read PDFs, Word docs, plain text files, or images (e.g., roadmaps, whiteboard sketches) to improve risk predictions."
 )
 
 if st.button("Run Simulation", type="primary"):
@@ -96,9 +95,8 @@ if st.button("Run Simulation", type="primary"):
                 )
                 st.plotly_chart(fig_prob, use_container_width=True)
                 
-                # NEW: Advanced Visuals - Risk Heatmap
-                # (shows probability intensity by impact severity)
-                df_pivot = df_risks.pivot_table(
+                
+                df_pivot = df_prob.pivot_table(
                     index='risk',
                     columns='impact',
                     values='probability_num',
@@ -122,8 +120,7 @@ if st.button("Run Simulation", type="primary"):
                 )
                 st.plotly_chart(fig_heat, use_container_width=True)
 
-                # NEW: Impact Pie Chart
-                # (shows distribution of High/Medium/Low risks)
+
                 impact_counts = df_risks['impact'].value_counts()
                 fig_pie = px.pie(
                     values=impact_counts.values,
@@ -151,7 +148,6 @@ if st.button("Run Simulation", type="primary"):
                     else:
                         st.info("No trade-offs generated for this risk.")
                         
-            # NEW: Highlighted Quantitative Impact Metrics (Step 1)
             st.subheader("Key Impact Summary")
             if tradeoffs:
                 # Find best-case metrics across all trade-offs

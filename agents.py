@@ -1,14 +1,14 @@
 import google.generativeai as genai
 import json
 import requests
+from dotenv import load_dotenv
+import os
 
-#import os
-#genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-genai.configure(api_key="AIzaSyCX95VyuavKMnSx2NFTJggr8iscFgg7Msw")
+load_dotenv(".env.txt")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Use structured output config
 generation_config = {
-    "response_mime_type": "application/json"  # This forces pure JSON output
+    "response_mime_type": "application/json"
 }
 
 model = genai.GenerativeModel(
@@ -39,13 +39,35 @@ def risk_forecaster(project_input, uploaded_file=None):
     Predict top 3-5 risks with probability, impact, and explanation.
     Output ONLY valid JSON: {{"risks": [{{"risk": "...", "probability": "XX%", "impact": "High/Medium/Low", "explanation": "..."}}]}}
     """
-    
-    # Handle multimodal
+
+
+        # Handle multimodal file upload
     content = [prompt]
     if uploaded_file is not None:
-        file_bytes = uploaded_file.read()
-        mime_type = uploaded_file.type
-        content.append({"mime_type": mime_type, "data": file_bytes})
+        try:
+            file_bytes = uploaded_file.read()
+            mime_type = uploaded_file.type
+            
+            # Safety: Gemini has ~20MB practical limit
+            if len(file_bytes) > 20 * 1024 * 1024:
+                return {"error": "Uploaded file is too large (over 20MB). Please use a smaller file."}
+            
+            # Supported file types and their MIME types
+            supported_mimes = {
+                'application/pdf': 'PDF document',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word document (.docx)',
+                'text/plain': 'Plain text file (.txt / Notepad)',
+                'image/png': 'PNG image',
+                'image/jpeg': 'JPEG/JPG image',
+                'image/jpg': 'JPG image'
+            }
+            
+            if mime_type not in supported_mimes:
+                return {"error": f"Unsupported file type ({uploaded_file.name}). Please upload one of: PDF, Word (.docx), text (.txt), PNG, JPG/JPEG."}
+            
+            content.append({"mime_type": mime_type, "data": file_bytes})
+        except Exception as e:
+            return {"error": f"Error processing uploaded file ({uploaded_file.name}): {str(e)}. Try again or skip upload."}
     
     response = model.generate_content(content)
     try:
@@ -54,6 +76,7 @@ def risk_forecaster(project_input, uploaded_file=None):
     except json.JSONDecodeError as e:
         print("JSON Parse Error:", e, "\nRaw response:", response.text)
         return {"error": "Failed to parse risks", "raw": response.text}
+    
 
 def trade_off_optimizer(risks_data):
     prompt = f"""
