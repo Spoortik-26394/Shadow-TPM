@@ -7,7 +7,7 @@ generation_config = {
 }
 
 model = genai.GenerativeModel(
-    'mgemini-3-flash-preview',  # Higher free quota than 3-flash
+    'gemini-3-flash-preview',  # Higher free quota than 3-flash
     generation_config=generation_config
 )
 
