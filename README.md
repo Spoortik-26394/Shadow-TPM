@@ -36,4 +36,8 @@ Web app screenshot: https://github.com/Spoortik-26394/Shadow-TPM/blob/main/Shado
 1. Clone the repo:
    ```bash
    git clone https://https://github.com/Spoortik-26394/Shadow-TPM
-   
+
+2. Install dependencies: pip install -r requirements.txt
+3. Run the app: streamlit run app.py
+4. In the sidebar, paste your own Gemini API key (free at https://aistudio.google.com/app/apikey).
+5. Enter a program description and run simulation.
