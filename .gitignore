@@ -1,2 +1,15 @@
+# Ignore environment files with secrets
 .env
+.env.*
+*.env
 .env.txt
+.env.local
+
+# Other common ignores (optional but useful)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.DS_Store
