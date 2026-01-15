@@ -11,30 +11,34 @@ model = genai.GenerativeModel(
     generation_config=generation_config
 )
 
+# ──────────────────────────────────────────────
 def risk_forecaster(project_input, uploaded_file=None):
 
     prompt = f"""
     You are a versatile Risk Forecaster Agent for Google-scale technical programs in January 2026.
-    Handle both software/ML (model training, launches, tech debt, safety, scaling) and infrastructure (data centers, power, vendors, TPU clusters).
+    Handle software/ML, infrastructure, compliance, and talent/resource risks.
     Input: {project_input}
     If an uploaded file is provided, analyze it (e.g., extract timelines from PDF, dependencies from image) to inform risks.
-    Detect program type and focus on relevant risks (e.g., training delays for software; grid delays for infra).
-    Predict top 3-5 risks with probability, impact, and explanation.
-    Output ONLY valid JSON: {{"risks": [{{"risk": "...", "probability": "XX%", "impact": "High/Medium/Low", "explanation": "..."}}]}}
+
+    Detect program type and focus on relevant risks:
+    - Software/ML: training delays, deployment issues, model performance, technical debt
+    - Infrastructure: grid failures, vendor delays, capacity constraints
+    - Talent/Team: engineer churn, skill gaps, burnout
+    - Compliance/Safety: regulatory, sustainability, safety audits
+
+    Predict top 8-10 risks with probability, impact (High/Medium/Low), and explanation.
+    Output ONLY valid JSON: {{"risks": [{{"risk": "...", "probability": "XX%", "impact": "High/Medium/Low", "explanation": "..."}}]]}}
     """
 
-    # Handle multimodal file upload
     content = [prompt]
     if uploaded_file is not None:
         try:
             file_bytes = uploaded_file.read()
             mime_type = uploaded_file.type
             
-            # Safety: Gemini has ~20MB practical limit
             if len(file_bytes) > 20 * 1024 * 1024:
                 return {"error": "Uploaded file is too large (over 20MB). Please use a smaller file."}
             
-            # Supported file types
             supported_mimes = {
                 'application/pdf': 'PDF document',
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word document (.docx)',
@@ -59,14 +63,18 @@ def risk_forecaster(project_input, uploaded_file=None):
         print("JSON Parse Error:", e, "\nRaw response:", response.text)
         return {"error": "Failed to parse risks", "raw": response.text}
 
+# ──────────────────────────────────────────────
 def trade_off_optimizer(risks_data):
     prompt = f"""
     You are a Trade-Off Optimizer Agent for technical programs.
     Input risks: {json.dumps(risks_data)}
-    Suggest 2-3 mitigations per risk with trade-offs:
-    - For software/ML: engineering effort, time, quality/safety.
-    - For infra: cost, time, risk reduction.
-    Output ONLY valid JSON: {{"tradeoffs": [{{"risk": "...", "options": [{{"option": "...", "effort_impact": "...", "time_impact": "...", "quality_risk_reduction": "XX%"}}]}}]}}
+
+    Suggest 3-4 mitigations per risk with trade-offs:
+    - For software/ML: engineering effort, time, quality/safety
+    - For infra: cost, time, risk reduction
+    Include notes if a mitigation reduces multiple risks simultaneously.
+    
+    Output ONLY valid JSON: {{"tradeoffs": [{{"risk": "...", "options": [{{"option": "...", "effort_impact": "...", "time_impact": "...", "quality_risk_reduction": "XX%", "multi_risk_note": "..."}}]}}]]}}
     """
     response = model.generate_content(prompt)
     try:
@@ -76,10 +84,12 @@ def trade_off_optimizer(risks_data):
         print("JSON Parse Error:", e, "\nRaw response:", response.text)
         return {"error": "Failed to parse trade-offs", "raw": response.text}
 
+# ──────────────────────────────────────────────
 def comms_influencer(risks_data, tradeoffs_data):
     prompt = f"""
     You are a senior TPM Comms/Influencer Agent at Google.
-    Focus on software/ML programs: model launches, platform upgrades, compliance, cross-team coordination.
+    Focus on software/ML, infrastructure, compliance, and cross-team coordination.
+
     Input risks: {json.dumps(risks_data)}
     Input trade-offs: {json.dumps(tradeoffs_data)}
     
@@ -87,7 +97,7 @@ def comms_influencer(risks_data, tradeoffs_data):
     1. Email draft to stakeholders (Subject + Greeting + Body + Closing)
     2. 3-4 bullet talking points for exec update
     3. Simple 1-slide outline (title + 3 bullets)
-    
+
     Output ONLY valid JSON: {{
         "email_draft": {{ "subject": "...", "greeting": "...", "body": "...", "closing": "..." }},
         "talking_points": ["...", "..."],
@@ -100,6 +110,7 @@ def comms_influencer(risks_data, tradeoffs_data):
     except:
         return {"error": "Failed to generate comms"}
 
+# ──────────────────────────────────────────────
 def ethics_checker(project_input, risks_data):
     prompt = f"""
     You are an Ethics & Sustainability Agent for Google technical programs.
@@ -120,6 +131,7 @@ def ethics_checker(project_input, risks_data):
     except:
         return {"error": "Failed to check ethics"}
 
+# ──────────────────────────────────────────────
 def talent_risk_simulator(project_input, risks_data):
     prompt = f"""
     You are a Talent Risk Simulator Agent for technical programs.
@@ -140,12 +152,11 @@ def talent_risk_simulator(project_input, risks_data):
     except:
         return {"error": "Failed to simulate talent risks"}
 
+# ──────────────────────────────────────────────
 def orchestrator(project_input, uploaded_file=None, user_api_key=""):
-    # Require user-provided API key
     if not user_api_key.strip():
         return {"error": "No Gemini API key provided. Please enter your own key in the sidebar to run simulations. Get a free key at https://aistudio.google.com/app/apikey"}
 
-    # Configure Gemini with the user-provided key
     genai.configure(api_key=user_api_key)
 
     risks = risk_forecaster(project_input, uploaded_file)
@@ -169,7 +180,7 @@ def orchestrator(project_input, uploaded_file=None, user_api_key=""):
         return talent
 
     final_output = {
-        "summary": "Simulation complete for your AI infra program.",
+        "summary": "Simulation complete for your AI program.",
         "risks": risks.get("risks", []),
         "tradeoffs": tradeoffs.get("tradeoffs", []),
         "comms": comms,

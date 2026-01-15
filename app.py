@@ -13,17 +13,15 @@ st.set_page_config(
 st.sidebar.title("Shadow TPM")
 
 # ──────────────────────────────────────────────
-# Mandatory: User must enter their own Gemini API key
 st.sidebar.subheader("Your Gemini API Key (Required)")
 api_key_input = st.sidebar.text_input(
     "Paste your API key to run simulations",
-    type="password",  # Hides the key as dots
+    type="password",
     placeholder="AIzaSy...",
-    key="api_key_input",  # Unique key to avoid conflicts
+    key="api_key_input",
     help="This key is only used in your browser session — not stored. Create a free one at https://aistudio.google.com/app/apikey"
 )
 
-# NEW: Enter button
 if st.sidebar.button("Enter", type="primary", key="enter_key_button"):
     if not api_key_input.strip():
         st.sidebar.error("Please paste a valid API key.")
@@ -32,10 +30,10 @@ if st.sidebar.button("Enter", type="primary", key="enter_key_button"):
         st.sidebar.success("API key accepted — ready to run simulations!")
 # ──────────────────────────────────────────────
 
-st.sidebar.markdown("🛡️ Gemini-powered agentic tool for AI infrastructure risk simulation")
+st.sidebar.markdown("🛡️ Gemini-powered Shadow TPM: AI Program Risk Simulator")
 st.sidebar.markdown("Built with Google Gemini API • January 2026")
 st.sidebar.markdown("---")
-st.sidebar.info("Simulate real-world 2026 challenges: power shortages, vendor delays, gigawatt-scale compute constraints.")
+st.sidebar.info("Simulate real-world 2026 program challenges: resource constraints, technical dependencies, schedule risks, and trade-offs.")
 st.sidebar.markdown("### Try These Example Prompts:")
 st.sidebar.markdown("- **Software/ML:** Developing Gemini v3.0 model, 6-month launch, 150 engineers, dependencies on data pipeline and TPU v6.")
 st.sidebar.markdown("- **Tech Debt:** Reducing technical debt in Cloud ML serving platform, 9-month program, 40% legacy code migration.")
@@ -43,14 +41,13 @@ st.sidebar.markdown("- **Compliance:** Managing EU AI Act compliance for generat
 st.sidebar.markdown("- **Infra:** Scaling 1GW TPU cluster in Texas, 9-month deadline, $500M budget, power and fiber vendors.")
 
 st.title("Shadow TPM")
-st.markdown("Proactive AI Co-Pilot for Google-scale AI Infrastructure Programs")
-st.markdown("Simulate risks, trade-offs, and mitigations for data center / TPU cluster scaling in 2026.")
+st.markdown("Your AI Co-Pilot for Managing Complex Technical Programs")
+st.markdown("Simulate risks, trade-offs, and mitigations across AI, software, and technical programs.")
 
-# Input section
 project_input = st.text_area(
-    "Describe your AI infrastructure program:",
+    "Describe your program or project:",
     height=150,
-    placeholder="Example: Scaling a new 1GW TPU cluster in Texas, 9-month deadline, $500M budget, key vendors for power infrastructure and fiber cables."
+    placeholder="Example: Coordinating a 6-month AI/ML program with 150 engineers, complex dependencies across data pipelines, cloud services, and hardware infrastructure."
 )
 
 uploaded_file = st.file_uploader(
@@ -76,7 +73,7 @@ if st.button("Run Simulation", type="primary"):
         else:
             st.success("Simulation complete! 🚀 Risks & mitigations ready.")
 
-            # Display Summary
+            # Summary
             st.subheader("Summary")
             st.write(result["summary"])
 
@@ -84,11 +81,10 @@ if st.button("Run Simulation", type="primary"):
             st.subheader("Predicted Risks")
             risks = result.get("risks", [])
             if risks:
-                # Table
                 df_risks = pd.DataFrame(risks)
                 st.dataframe(df_risks, use_container_width=True)
 
-                # Simple bar chart for risk probabilities
+                # Risk Probability Bar Chart (aesthetics improved)
                 df_prob = df_risks.copy()
                 df_prob['probability_num'] = df_prob['probability'].str.rstrip('%').astype(float)
                 fig_prob = px.bar(
@@ -98,24 +94,30 @@ if st.button("Run Simulation", type="primary"):
                     color='impact',
                     title="Risk Probabilities (%) by Impact",
                     labels={'probability_num': 'Probability (%)', 'risk': 'Risk'},
-                    height=450,
+                    height=500,
                     color_discrete_map={
-                        'High': '#FF4C4C',
-                        'Medium': '#FFA500',
-                        'Low': '#4CAF50'
-                    }
+                        'High': '#E74C3C',   # Rich red
+                        'Medium': '#F39C12', # Amber
+                        'Low': '#2ECC71'     # Green
+                    },
+                    text='probability_num'
                 )
-                fig_prob.update_traces(hovertemplate='<b>%{x}</b><br>Probability: %{y}%')
+                fig_prob.update_traces(hovertemplate='<b>%{x}</b><br>Probability: %{y}%', texttemplate='%{text:.1f}%', textposition='outside')
                 fig_prob.update_layout(
                     xaxis_tickangle=-45,
                     xaxis_title="",
                     yaxis_title="Probability (%)",
-                    showlegend=True,
-                    margin=dict(b=100)
+                    font=dict(family="Arial, sans-serif", size=13),
+                    uniformtext_minsize=12,
+                    uniformtext_mode='hide',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    margin=dict(b=120),
+                    showlegend=True
                 )
                 st.plotly_chart(fig_prob, use_container_width=True)
 
-                # Risk Heatmap
+                # Risk Heatmap (aesthetics improved)
                 df_pivot = df_prob.pivot_table(
                     index='risk',
                     columns='impact',
@@ -125,9 +127,9 @@ if st.button("Run Simulation", type="primary"):
 
                 fig_heat = px.imshow(
                     df_pivot,
-                    title="Risk Heatmap (Exact Probability by Impact)",
-                    color_continuous_scale="Reds",
-                    height=400,
+                    title="Risk Heatmap (Probability by Impact)",
+                    color_continuous_scale=px.colors.sequential.Reds,
+                    height=450,
                     labels=dict(x="Impact Level", y="Risk", color="Probability (%)"),
                     text_auto=True,
                     aspect="auto"
@@ -135,22 +137,30 @@ if st.button("Run Simulation", type="primary"):
                 fig_heat.update_layout(
                     xaxis_title="Impact Level",
                     yaxis_title="Risk",
+                    xaxis_tickangle=-30,
+                    font=dict(family="Arial, sans-serif", size=12),
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
                     coloraxis_colorbar_title="Probability (%)",
-                    xaxis_tickangle=-45
                 )
                 st.plotly_chart(fig_heat, use_container_width=True)
 
-                # Impact Pie Chart
+                # Impact Pie Chart (aesthetics improved)
                 impact_counts = df_risks['impact'].value_counts()
+                # Ensure the categories are in the correct order
+                impact_order = ["High", "Medium", "Low"]
+                impact_counts = impact_counts.reindex(impact_order, fill_value=0)
+
                 fig_pie = px.pie(
                     values=impact_counts.values,
                     names=impact_counts.index,
                     title="Risk Impact Distribution",
-                    hole=0.3,
-                    color_discrete_sequence=["#FF4C4C", "#FFA500", "#4CAF50"],
-                    height=400
+                    hole=0.4,
+                    color_discrete_map={"High": "#E74C3C", "Medium": "#F39C12", "Low": "#2ECC71"},
+                    height=420
                 )
-                fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+                fig_pie.update_traces(textposition='inside', textinfo='percent+label', pull=[0.05,0.02,0.02])
+                fig_pie.update_layout(font=dict(family="Arial, sans-serif", size=13), legend_title_text="Impact Level")
                 st.plotly_chart(fig_pie, use_container_width=True)
             else:
                 st.info("No risks detected.")
@@ -209,7 +219,7 @@ if st.button("Run Simulation", type="primary"):
             else:
                 st.info("No trade-off metrics available yet.")
 
-            # Rest of your sections (Communication Artifacts, Ethics, Talent, Download) remain unchanged
+            # Communication Artifacts
             st.subheader("Communication Artifacts")
             comms = result.get("comms", {})
             if comms:
@@ -217,7 +227,7 @@ if st.button("Run Simulation", type="primary"):
                     email = comms.get("email_draft", {})
                     st.markdown(f"**Subject:** {email.get('subject', 'N/A')}")
                     st.markdown(f"**Greeting:** {email.get('greeting', 'N/A')}")
-                    st.text_area("Body:", value=email.get('body', 'N/A'), height=200, key="email_body")
+                    st.text_area("Body:", value=email.get("body", "N/A"), height=200, key="email_body")
                     st.markdown(f"**Closing:** {email.get('closing', 'N/A')}")
 
                 st.markdown("**Talking Points for Exec Meeting**")
@@ -240,6 +250,7 @@ if st.button("Run Simulation", type="primary"):
             else:
                 st.info("No communication artifacts generated (check if comms agent is enabled).")
 
+            # Ethics
             st.subheader("Ethics & Sustainability Review")
             ethics = result.get("ethics", {})
             if ethics:
@@ -258,6 +269,7 @@ if st.button("Run Simulation", type="primary"):
             else:
                 st.info("Ethics check not available.")
 
+            # Talent
             st.subheader("Talent & Resource Risk Simulation")
             talent = result.get("talent", {})
             if talent:
